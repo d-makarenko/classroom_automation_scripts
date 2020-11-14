@@ -105,7 +105,7 @@ uts22_nl = {
     "Гаврилова": "gavrilova-spk",
     "Гугучкин": "CelestialShepherd",
     "Добродеев": "Aleksandr32reg",
-    "Ерепилов": "Ejik656RUS",
+    "Ерепилов": "ErepilovD",
     "Королев": "Akorolev1-d",
     "Лавриненко": "1XDeNX1",
     "Мухаметгалина": "dianamukhametgalina",
