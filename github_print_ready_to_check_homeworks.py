@@ -76,73 +76,47 @@ class Group(object):
 
     def get_graded_repo(self, dz="*"):
         return [self.format_repo(repo, grades=True) 
-                for repo in tqdm(self.merged, desc="Fetching grades") 
+                for repo in tqdm(sorted(self.merged, key=lambda a: (self.get_name(a), self.get_dz(a))), desc="Fetching grades") 
                     if dz=="*" or dz==get_dz(repo)]
 
 
 uts21_nl = {
-    "Антоновский": "AntonovskiyIvan",
-    "Богатый": "AnatoliiBogatyi",
-    "Колосов": "KolosovSergey24",
-    "Комалов": "Unlinked user",
-    "Кузьмин": "WurrenG",
-    "Молчанов": "Mihail325",
-    "Олейник": "vladimir1o",
-    "Платонов": "loponavt",
-    "Рыбаков": "Nofims",
-    "Снегирев": "dimjan131",
-    "Тарасов": "tarasqua",
-    "Тришкин": "AmthyCorn",
-    "Фазлутдинова": "Albinaf",
-    "Черопко": "SolarMeIster",
-    "Шишкин": "k4let0"
+    "Авраменко": "Unlinked user",
+    "Виноградов": "KingOFTeAll",
+    "Вирясов": "ZimeerVir",
+    "Гаас": "FreLoy",
+    "Гасаналиева": "sabishh",
+    "Гелашвили": "IllidanTheStormrage",
+    "Догадкин": "Lehnele",
+    "Елтанская": "kskelt",
+    "Жукалина": "qvilliii",
+    "Загребин": "Alexey9919",
+    "Иглин": "MaximIglin",
+    "Игошин": "Unlinked user",
+    "Изергин": "Unlinked",
+    "Ковтунов": "Unlinked user",
+    "Кондратьев": "craaaazyboy",
+    "Константинов": "DiSShoRt",
+    "Ляпин": "scorpion135",
+    "Мирошников": "Atmoslayer",
+    "Пустовит": "ArtVoider",
+    "Смирнов": "deeereee",
+    "Соколов": "DarkiZZZ",
+    "Терещенко": "IvanTereshchenko2609",
+    "Тюрин": "Sakura-tyan-meow",
+    "Уренцев": "SanoDolorato",
+    "Фам": "phamkhaclong",
+    "Чугаев": "ChugaevMark",
+    "Пустовой": "Unlinked user",
+    "Изергин": "Unlinked user",
 }
 
-uts22_nl = {
-    "Белик": "BadFatRat",
-    "Буй": "Bd0ptimus",
-    "Волоченко": "Unlinked user",
-    "Гаврилова": "gavrilova-spk",
-    "Гугучкин": "CelestialShepherd",
-    "Добродеев": "Aleksandr32reg",
-    "Ерепилов": "ErepilovD",
-    "Королев": "Akorolev1-d",
-    "Лавриненко": "1XDeNX1",
-    "Мухаметгалина": "dianamukhametgalina",
-    "Припотнев": "MSPripotnev",
-    "Рожков": "MrRivan",
-    "Рожкова": "JuliaRoUTC22",
-    "Федорович": "Furry4",
-    "Хо": "htpdanh",
-    "Хоанг": "viettung267",
-    "Чугаев": "ChugaevMark"
-}
 
-ivt_nl = {
-    "Амеличев": "Unlinked user",
-    "Бадаев": "Unlinked user",
-    "Быков": "Unlinked user",
-    "Бычков": "Unlinked user",
-    "Васякин": "Unlinked user",
-    "Гричушкина": "Unlinked user",
-    "Зубков": "Unlinked user",
-    "Идаев": "Unlinked user",
-    "Идаев": "Unlinked user",
-    "Когустов": "Unlinked user",
-    "Краснюк": "Unlinked user",
-    "Оганесян": "Unlinked user",
-    "Пирожихин": "Unlinked user",
-    "Серебряков": "GeloTorange",
-    "Спиридонов": "Unlinked user",
-    "Фахриева": "Unlinked user",
-}
 
 g = Github(GITHUB_TOKEN)
 
 groups = [
     Group("UTS-21", uts21_nl),
-    Group("UTS-22", uts22_nl),
-    Group("IVT", ivt_nl),
 ]
 
 repos = g.get_user().get_repos()
@@ -151,7 +125,7 @@ i = 0
 for repo in progress:
 
     progress.set_description(f"Processing: {repo.name:>50}")
-    if repo.name.startswith("domashnee-zadanie-no3"):
+    if repo.name.startswith("domashnee-zadanie-no"):
         if repo.private:
             continue      
         for group in groups:
