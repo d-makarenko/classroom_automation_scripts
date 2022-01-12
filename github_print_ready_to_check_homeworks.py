@@ -1,11 +1,15 @@
+from git.refs import log
 from github import Github
 from git import Repo
 import re
 import os
 from classroom_automation_tokens import GITHUB_TOKEN
 from tqdm import tqdm
+import sys
+from loguru import logger
 
 
+@logger.catch
 class Group(object):
     def __init__(self, name, name_login_dict={}):
         self.name = name
@@ -79,96 +83,104 @@ class Group(object):
                 for repo in tqdm(sorted(self.merged, key=lambda a: (self.get_name(a), self.get_dz(a))), desc="Fetching grades") 
                     if dz=="*" or dz==get_dz(repo)]
 
-
-uts21_nl = {
-    "Авраменко": "Unlinked user",
-    "Виноградов": "KingOFTeAll",
-    "Вирясов": "ZimeerVir",
-    "Гаас": "FreLoy",
-    "Гасаналиева": "sabishh",
-    "Гелашвили": "IllidanTheStormrage",
-    "Догадкин": "Lehnele",
-    "Елтанская": "kskelt",
-    "Жукалина": "qvilliii",
-    "Загребин": "Alexey9919",
-    "Иглин": "MaximIglin",
-    "Игошин": "Unlinked user",
-    "Изергин": "Unlinked",
-    "Ковтунов": "Unlinked user",
-    "Кондратьев": "craaaazyboy",
-    "Константинов": "DiSShoRt",
-    "Ляпин": "scorpion135",
-    "Мирошников": "Atmoslayer",
-    "Пустовит": "ArtVoider",
-    "Смирнов": "deeereee",
-    "Соколов": "DarkiZZZ",
-    "Терещенко": "IvanTereshchenko2609",
-    "Тюрин": "Sakura-tyan-meow",
-    "Уренцев": "SanoDolorato",
-    "Фам": "phamkhaclong",
-    "Чугаев": "ChugaevMark",
-    "Пустовой": "Unlinked user",
-    "Изергин": "Unlinked user",
-}
-
-
-
-g = Github(GITHUB_TOKEN)
-
-groups = [
-    Group("UTS-21", uts21_nl),
-]
-
-repos = g.get_user().get_repos()
-progress = tqdm(repos, total=repos.totalCount, desc="Processing repositories")
-i = 0
-for repo in progress:
-
-    progress.set_description(f"Processing: {repo.name:>50}")
-    if repo.name.startswith("domashnee-zadanie-no"):
-        if repo.private:
-            continue      
-        for group in groups:
-            if group.process_repo(repo):
-                break
-
-for group in groups:
-    print(f"\n{group.name}")
-    print("\n".join(group.get_repos_to_check()))
-
-for group in groups:
-    print(f"\n{group.name}")
-    print("\n".join(group.get_graded_repo()))
+@logger.catch
+def main():
+    uts21_nl = {
+        "Авраменко": "Unlinked user",
+        "Виноградов": "KingOFTeAll",
+        "Вирясов": "ZimeerVir",
+        "Гаас": "FreLoy",
+        "Гасаналиева": "sabishh",
+        "Гелашвили": "IllidanTheStormrage",
+        "Догадкин": "Lehnele",
+        "Елтанская": "kskelt",
+        "Жукалина": "qvilliii",
+        "Загребин": "Alexey9919",
+        "Иглин": "MaximIglin",
+        "Игошин": "Unlinked user",
+        "Изергин": "Unlinked",
+        "Ковтунов": "Unlinked user",
+        "Кондратьев": "craaaazyboy",
+        "Константинов": "DiSShoRt",
+        "Ляпин": "scorpion135",
+        "Мирошников": "Atmoslayer",
+        "Пустовит": "ArtVoider",
+        "Смирнов": "deeereee",
+        "Соколов": "DarkiZZZ",
+        "Терещенко": "IvanTereshchenko2609",
+        "Тюрин": "Sakura-tyan-meow",
+        "Уренцев": "SanoDolorato",
+        "Фам": "phamkhaclong",
+        "Чугаев": "ChugaevMark",
+        "Пустовой": "Unlinked user",
+        "Изергин": "Unlinked user",
+    }
 
 
-download_repos = input("Do you want to clone\pull not graded repos? ([Y]es/No)")
-if(download_repos.lower() in ["", "yes", "y", "да", "д", "нуы", "н"]):
-    default_path = os.path.realpath(os.curdir)
-    directory_to_clone = ""
-    while not os.path.exists(directory_to_clone):
-        directory_to_clone = input(f"Directory to clone repos [{default_path}]: ")
-        if not directory_to_clone:
-            directory_to_clone = default_path
-        if not os.path.exists(directory_to_clone):
-            create_dir = input(f"Path {directory_to_clone} do not exists. Create now? [Y]es/ No: ")
-            if create_dir.lower() in ["", "yes", "y", "да", "д", "нуы", "н"]:
-                os.makedirs(directory_to_clone)
-    
+
+    g = Github(GITHUB_TOKEN)
+
+    groups = [
+        Group("UTS-21", uts21_nl),
+    ]
+
+    repos = g.get_user().get_repos()
+    progress = tqdm(repos, total=repos.totalCount, desc="Processing repositories")
+    i = 0
+    for repo in progress:
+
+        progress.set_description(f"Processing: {repo.name:>50}")
+        if repo.name.startswith("domashnee-zadanie-no"):
+            if repo.private:
+                continue      
+            for group in groups:
+                if group.process_repo(repo):
+                    break
+
+    for group in groups:
+        print(f"\n{group.name}")
+        print("\n".join(group.get_repos_to_check()))
+
+    for group in groups:
+        print(f"\n{group.name}")
+        print("\n".join(group.get_graded_repo()))
 
 
-    group_progress = tqdm(groups, total=len(groups), desc="Cloning repositories")
-    for group in group_progress:
-        group_dir = os.path.join(directory_to_clone, group.name)
-        os.makedirs(group_dir, exist_ok=True)
-        repos = group.get_not_graded_repos()
-        repo_progress = tqdm(repos, total=len(groups), desc=f"Cloning repositories: {group.name}")
-        for repo in repo_progress:
-            repo_dir = os.path.join(group_dir, group.get_dz(repo), f"{group.get_variant(repo):02} - {group.get_name(repo)}")
-            if os.path.exists(repo_dir):
-                repo = Repo(repo_dir)
-                repo.head.reset(index=True, working_tree=True)
-                repo.remote().pull()
-            else:
-                os.makedirs(repo_dir, exist_ok=True)
-                Repo.clone_from(f"https://github.com/MIEE-ACS/{repo.name}", repo_dir)
+    download_repos = input("Do you want to clone\pull not graded repos? ([Y]es/No)")
+    if(download_repos.lower() in ["", "yes", "y", "да", "д", "нуы", "н"]):
+        default_path = os.path.realpath(os.curdir)
+        directory_to_clone = ""
+        while not os.path.exists(directory_to_clone):
+            directory_to_clone = input(f"Directory to clone repos [{default_path}]: ")
+            if not directory_to_clone:
+                directory_to_clone = default_path
+            if not os.path.exists(directory_to_clone):
+                create_dir = input(f"Path {directory_to_clone} do not exists. Create now? [Y]es/ No: ")
+                if create_dir.lower() in ["", "yes", "y", "да", "д", "нуы", "н"]:
+                    os.makedirs(directory_to_clone)
+        
+
+
+        group_progress = tqdm(groups, total=len(groups), desc="Cloning repositories")
+        for group in group_progress:
+            group_dir = os.path.join(directory_to_clone, group.name)
+            os.makedirs(group_dir, exist_ok=True)
+            repos = group.get_not_graded_repos()
+            repo_progress = tqdm(repos, total=len(groups), desc=f"Cloning repositories: {group.name}")
+            
+            for repo in repo_progress:
+                logger.info(f"Cloning: {repo.name}")
+                repo_dir = os.path.join(group_dir, group.get_dz(repo), f"{group.get_variant(repo):02} - {group.get_name(repo)}")
+                if os.path.exists(repo_dir):
+                    repo = Repo(repo_dir)
+                    repo.head.reset(index=True, working_tree=True)
+                    repo.remote().pull()
+                else:
+                    os.makedirs(repo_dir, exist_ok=True)
+                    Repo.clone_from(f"https://github.com/MIEE-ACS/{repo.name}", repo_dir)
+
+
+if __name__ == "__main__":
+    logger.add(sys.stdout, colorize=True, format="<green>{time}</green> <level>{message}</level>")
+    main()
             
